@@ -2,13 +2,14 @@ import os
 import shutil
 import time
 import datetime
+from functools import reduce
 
 sourceDirectories = [#'/home/justin/.gvfs/Justin \xe3\x81\xae iPhone/DCIM/100APPLE',
 					#'/home/justin/.gvfs/Justin \xe3\x81\xae iPhone/DCIM/101APPLE',
-					'/run/user/1000/gvfs/afc:host=c88e1711aa80239487e27c5d34c0b243574c9f2a/DCIM',
 					'/media/justin/NEW VOLUME',
 					'/media/justin/FC30-3DA9',
-					'/home/justin/temp/PhotoDump']
+					'/home/justin/temp/PhotoDump',
+					'/home/justin/Drives/2.3TB/downloads/photos']
 
 mediaDirectory = "/home/justin/Drives/2.3TB/Pictures"
 
@@ -46,9 +47,11 @@ def getDirectoryList(path):
 
 def getMediaFileList(path):
 	"""returns a list of media files in a path,returns a list of JPG and MOV files"""
+	
+	fileTypes = ("jpg", "mov", "mp4")
 	dirList = ["/".join([path,object]) for object in os.listdir(path)]
 	fileList = [object for object in dirList if os.path.isfile(object)]
-	fileList = [file for file in fileList if ".JPG" in file or ".MOV" in file]
+	fileList = [file for file in fileList if file.split(".")[1].lower() in fileTypes]
 	
 	#for the new canon camera, ther are some .Trash and trashinfo files, want to ignore them
 	fileList = [file for file in fileList if "trash" not in file and "Trash" not in file]
@@ -73,12 +76,14 @@ def getMediaFiles(path):
 def makeDirs(directories):
 	"""creates directories as necessary for pictures"""
 	createList = [directory for directory in directories if not os.path.exists(directory)]
-	map(os.mkdir, createList)
+# 	map(os.mkdir, createList)
+	for directory in createList:
+		os.mkdir(directory)
 
 def copyMedia(source,target):
 	"""copies media to the media directory from the dateDict"""
 	if not os.path.exists(target):
-		print "copying source,target:",source,target 
+		print("copying source,target:",source,target) 
 		shutil.copy2(source,target)
 	
 if __name__ == "__main__":
@@ -98,7 +103,12 @@ if __name__ == "__main__":
 	getFilename = lambda f: f.split("/")[-1]
 	copyTargetList = ["/".join([targetDir,getFilename(mediaFile)]) for targetDir,mediaFile in zip(targetDirectories,mediaFileList)]
 	
+	errors = []
 	for source,target in zip(mediaFileList,copyTargetList):
-		copyMedia(source,target)
+		try:
+			copyMedia(source,target)
+		except OSError:
+			errors.append(source)
+			print("error transferring", source)
 		
 
