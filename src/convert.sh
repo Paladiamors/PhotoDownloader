@@ -3,11 +3,11 @@
 
 for file in *.HEIC; do 
   echo "Converting $file to ${file%%.HEIC}.jpg"
-  heif-convert "$file" ${file%%.HEIC}.jpg
+  heif-convert "$file" "${file%%.HEIC}.jpg"
 
   echo "reading original creation date"
   date=$(stat -c %y -t "$file"| cut -d "." -f 1)
 
   echo "writing original creation date as modification and creation date"
-  touch -am --date="$date" ${file%%.HEIC}.jpg
+  touch -am --date="$date" "${file%%.HEIC}.jpg"
 done
